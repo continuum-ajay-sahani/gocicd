@@ -5,6 +5,7 @@
 *.so
 *.dylib
 src/src
+service
 
 # Arhives
 *.tar

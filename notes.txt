@@ -1,2 +1,5 @@
 https://blog.couchbase.com/create-continuous-deployment-pipeline-golang-jenkins/
 https://github.com/vineet68sharma/CI-CD-Docker
+
+jenkin password
+ 686ce47de3594626a5c5a23ef0289877
