@@ -1,86 +1,29 @@
-def CONTAINER_NAME="jenkins-pipeline"
-def CONTAINER_TAG="latest"
-def DOCKER_HUB_USER="ajaysahani"
-def HTTP_PORT="8090"
-
 node {
+    def root = tool name: 'Go1.8', type: 'go'
+    ws("${JENKINS_HOME}/jobs/${JOB_NAME}/builds/${BUILD_ID}/src/github.com/grugrut/golang-ci-jenkins-pipeline") {
+        withEnv(["GOROOT=${root}", "GOPATH=${JENKINS_HOME}/jobs/${JOB_NAME}/builds/${BUILD_ID}/", "PATH+GO=${root}/bin"]) {
+            env.PATH="${GOPATH}/bin:$PATH"
+            
+            stage 'Checkout'
+        
+            git url: 'https://github.com/continuum-ajay-sahani/gocicd.git'
 
-    stage('Initialize'){
-        def dockerHome = tool 'myDocker'
-        def mavenHome  = tool 'myMaven'
-        env.PATH = "${dockerHome}/bin:${mavenHome}/bin:${env.PATH}"
-    }
-
-    stage('Checkout') {
-        checkout scm
-    }
-
-    stage('Go Info'){
-        // Install the desired Go version
-         def root = tool name: 'Go 1.8', type: 'go'
- 
-        // Export environment variables pointing to the directory where Go was installed
-        withEnv(["GOROOT=${root}", "PATH+GO=${root}/bin"]) {
+            sh 'cd ./srcv2'
+        
+            stage 'preTest'
             sh 'go version'
+            sh 'go get -u github.com/golang/dep/...'
+            sh 'dep init'
+            
+            stage 'Test'
+            sh 'go vet'
+            sh 'go test -cover'
+            
+            stage 'Build'
+            sh 'go build .'
+            
+            stage 'Deploy'
+            // Do nothing.
         }
     }
-
-    stage('Build'){
-        sh 'go version'
-        sh "cd srcv2"
-        sh "make all"
-        sh "cd .."
-    }
-
-    stage('Sonar'){
-        try {
-            sh "mvn sonar:sonar"
-        } catch(error){
-            echo "The sonar server could not be reached ${error}"
-        }
-     }
-
-    stage("Image Prune"){
-        imagePrune(CONTAINER_NAME)
-    }
-
-    stage('Image Build'){
-        imageBuild(CONTAINER_NAME, CONTAINER_TAG)
-    }
-
-    stage('Push to Docker Registry'){
-        withCredentials([usernamePassword(credentialsId: 'dockerHubAccount', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-            pushToImage(CONTAINER_NAME, CONTAINER_TAG, USERNAME, PASSWORD)
-        }
-    }
-
-    stage('Run App'){
-        runApp(CONTAINER_NAME, CONTAINER_TAG, DOCKER_HUB_USER, HTTP_PORT)
-    }
-
-}
-
-def imagePrune(containerName){
-    try {
-        sh "docker image prune -f"
-        sh "docker stop $containerName"
-    } catch(error){}
-}
-
-def imageBuild(containerName, tag){
-    sh "docker build -t $containerName:$tag  -t $containerName --pull --no-cache ."
-    echo "Image build complete"
-}
-
-def pushToImage(containerName, tag, dockerUser, dockerPassword){
-    sh "docker login -u $dockerUser -p $dockerPassword"
-    sh "docker tag $containerName:$tag $dockerUser/$containerName:$tag"
-    sh "docker push $dockerUser/$containerName:$tag"
-    echo "Image push complete"
-}
-
-def runApp(containerName, tag, dockerHubUser, httpPort){
-    sh "docker pull $dockerHubUser/$containerName"
-    sh "docker run -d --rm -p $httpPort:$httpPort --name $containerName $dockerHubUser/$containerName:$tag"
-    echo "Application started on port: ${httpPort} (http)"
 }
