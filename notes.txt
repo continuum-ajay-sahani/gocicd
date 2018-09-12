@@ -1,8 +1,17 @@
+docker-compose -f docker-compose.yml up --build
+
+
 https://blog.couchbase.com/create-continuous-deployment-pipeline-golang-jenkins/
 https://github.com/vineet68sharma/CI-CD-Docker
 
 jenkin password
-686ce47de3594626a5c5a23ef0289877
+ec76a48e426249cb94822fb8c1ba279d
 
 install go plugins
 https://zpjiang.me/2017/08/09/Setup-Jenkins-for-Go-Projects/
+
+
+$WORKSPACE/../src/github.com/continuum-ajay-sahani/gocicd
+
+# Run make to perform the build
+cd $GOPATH/src/github.com/continuum-ajay-sahani/gocicd/src && make all
