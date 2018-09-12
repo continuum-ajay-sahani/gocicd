@@ -16,6 +16,7 @@ node {
     }
 
     stage('Build'){
+        sh 'go version'
         sh "cd srcv2"
         sh "make all"
         sh "cd .."
