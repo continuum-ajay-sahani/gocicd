@@ -16,9 +16,7 @@ node {
     }
 
     stage('Build'){
-        sh "cd srcv2"
-        sh "make all"
-        sh "cd .."
+        sh "mvn clean install"
     }
 
     stage('Sonar'){

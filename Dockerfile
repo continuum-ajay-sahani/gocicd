@@ -1,13 +1,8 @@
-FROM maven:3-alpine
+FROM scratch
 
-COPY pom.xml pipeline/
+ COPY service /opt/test/bin/
 
-COPY src/ pipeline/src/
+ EXPOSE 8090
 
-WORKDIR pipeline/
-
-RUN mvn clean install
-
-EXPOSE 8090
-
-ENTRYPOINT [ "java", "-jar", "/pipeline/target/jenkins-pipeline.jar"]
+ ENTRYPOINT ["/opt/test/bin/service"]
+ CMD ["-config", "not provides"]
